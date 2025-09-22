@@ -1,0 +1,20 @@
+--3. How Has Global Production Shifted Through Time?
+
+SELECT 
+  fp.Year,
+  ROUND(SUM(fp.Value), 0) AS total_production,
+  ROUND(
+    (SUM(fp.Value) - LAG(SUM(fp.Value)) OVER (ORDER BY fp.Year)) 
+    / NULLIF(LAG(SUM(fp.Value)) OVER (ORDER BY fp.Year), 0) * 100, 
+    2
+  ) AS yoy_percentage_change
+FROM fact_production AS fp
+JOIN dim_item AS di ON fp.Item_ID = di.Item_ID
+JOIN dim_country AS dc ON fp.Country_ID = dc.Country_ID
+JOIN dim_element AS de ON fp.Element_ID = de.Element_ID
+WHERE di.Item = 'Wheat'
+  AND de.Element = 'Production'
+  AND dc.Country_ID IN (36, 89, 157, 201, 70, 8, 32, 142, 193, 197)
+  AND fp.Value IS NOT NULL
+GROUP BY fp.Year
+ORDER BY fp.Year;
