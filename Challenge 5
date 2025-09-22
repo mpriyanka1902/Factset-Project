@@ -1,0 +1,45 @@
+--5. A Tale of Inequality: Distribution of Global Output
+
+WITH Top10 AS (
+  SELECT 
+  dc.Country, 
+  ROUND(SUM(fp.Value),0) AS Total_production, 
+  FROM dim_country AS dc
+  JOIN fact_production AS fp
+  ON dc.Country_ID = fp.Country_ID
+  JOIN dim_item AS di
+  ON fp.Item_ID = di.Item_ID
+  JOIN dim_element AS de
+  ON fp.Element_ID = de.Element_ID
+  WHERE fp.Value IS NOT NULL
+  AND fp.Year = 2023
+  AND dc.Country_ID != 39
+  AND de.Element = 'Production'
+  AND di.Item = 'Wheat'
+  GROUP BY fp.Year, dc.Country
+  ORDER BY Total_production DESC
+  LIMIT 10),
+  
+GlobalTotal AS (
+  SELECT 
+      fp.Year,
+      Round(SUM(fp.Value),2) AS Global_production
+    FROM fact_production AS fp
+    JOIN dim_item AS di ON fp.Item_ID = di.Item_ID
+    JOIN dim_country AS dc ON fp.Country_ID = dc.Country_ID
+    JOIN dim_element AS de ON fp.Element_ID = de.Element_ID
+    WHERE di.Item = 'Wheat'
+      AND de.Element = 'Production'
+      AND dc.Country_ID NOT IN (37,38,39,40,17,153,180)
+         AND fp.Value IS NOT NULL
+      AND fp.Year = 2023
+    GROUP BY fp.Year)
+
+SELECT 
+  t.Country,
+  t.Total_production,
+  g.Global_production,
+  ROUND((t.Total_production / g.Global_production) * 100, 2) AS Share_of_Global_Production
+FROM Top10 t
+CROSS JOIN GlobalTotal g
+ORDER BY t.Total_production DESC;
