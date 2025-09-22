@@ -1,0 +1,20 @@
+--1. Mapping the Giants of Productio
+
+SELECT 
+dc.Country, 
+ROUND(SUM(fp.Value),0) AS Total_production, 
+FROM dim_country AS dc
+JOIN fact_production AS fp
+ON dc.Country_ID = fp.Country_ID
+JOIN dim_item AS di
+ON fp.Item_ID = di.Item_ID
+JOIN dim_element AS de
+ON fp.Element_ID = de.Element_ID
+WHERE fp.Value IS NOT NULL
+AND fp.Year = 2023
+AND dc.Country_ID != 39
+AND de.Element = 'Production'
+AND di.Item = 'Wheat'
+GROUP BY fp.Year, dc.Country
+ORDER BY Total_production DESC
+LIMIT 10;
