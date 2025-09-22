@@ -1,0 +1,34 @@
+--11. Yearly Champions: Who Led Each Year?
+
+WITH wheat_production AS (
+  SELECT 
+    dc.country,
+    fp.year,
+    SUM(fp.value) AS total_production
+  FROM fact_production AS fp
+  JOIN dim_item AS di ON fp.item_id = di.item_id
+  JOIN dim_element AS de ON fp.element_id = de.element_id
+  JOIN dim_country AS dc ON fp.country_id = dc.country_id
+  WHERE di.item = 'Wheat'
+    AND de.element = 'Production'
+    AND dc.Country_ID IN (36, 89, 157, 201, 70, 8, 32, 142, 193, 197)
+    AND fp.value IS NOT NULL
+  GROUP BY dc.country, fp.year
+),
+ranked_production AS (
+  SELECT 
+    country,
+    year,
+    total_production,
+    RANK() OVER (PARTITION BY year ORDER BY total_production DESC) AS prod_rank
+  FROM wheat_production
+)
+
+SELECT 
+  year,
+  country,
+  total_production
+FROM ranked_production
+WHERE prod_rank = 1
+ORDER BY year;
+
