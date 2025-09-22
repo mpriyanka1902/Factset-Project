@@ -1,0 +1,43 @@
+--4. Yield Volatility: Who Plays the Risky Game?
+
+WITH yearly_totals AS (
+  SELECT 
+    fp.Year,
+    dc.Country,
+    dc.Country_ID,
+    SUM(fp.Value) AS total_production
+  FROM fact_production AS fp
+  JOIN dim_item AS di ON fp.Item_ID = di.Item_ID
+  JOIN dim_country AS dc ON fp.Country_ID = dc.Country_ID
+  JOIN dim_element AS de ON fp.Element_ID = de.Element_ID
+  WHERE di.Item = 'Wheat'
+    AND de.Element = 'Yield'
+    AND dc.Country_ID IN (36, 89, 157, 201, 70, 8, 32, 142, 193, 197)
+    AND fp.Value IS NOT NULL
+  GROUP BY fp.Year, dc.Country, dc.Country_ID
+),
+percent_changes AS (
+  SELECT 
+    Year,
+    Country,
+    Country_ID,
+    total_production,
+    LAG(total_production) OVER (PARTITION BY Country ORDER BY Year) AS prev_year_production,
+    ROUND(
+      CASE 
+        WHEN LAG(total_production) OVER (PARTITION BY Country ORDER BY Year) IS NULL THEN NULL
+        ELSE (total_production - LAG(total_production) OVER (PARTITION BY Country ORDER BY Year)) * 100.0 
+             / LAG(total_production) OVER (PARTITION BY Country ORDER BY Year)
+      END, 2
+    ) AS percent_change
+  FROM yearly_totals
+)
+
+-- Step 2: Compute standard deviation per country
+SELECT 
+  Country,
+  ROUND(STDDEV(percent_change), 2) AS stddev_percent_change
+FROM percent_changes
+WHERE percent_change IS NOT NULL
+GROUP BY Country
+ORDER BY Country;
