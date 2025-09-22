@@ -1,0 +1,14 @@
+--6. Spotlight: A Country’s Journey Over the Years
+
+SELECT 
+    fp.Year,
+    dc.Country,
+    fp.Value
+  FROM fact_production AS fp
+  JOIN dim_item AS di ON fp.Item_ID = di.Item_ID
+  JOIN dim_element AS de ON fp.Element_ID = de.Element_ID
+  JOIN dim_country AS dc ON fp.Country_ID = dc.Country_ID
+  WHERE di.Item = 'Wheat'
+    AND de.Element = 'Production'
+    AND Country = 'France'
+  ORDER BY fp.Year;
