@@ -1,0 +1,30 @@
+--8. Breakout Growth Stories: Year-on-Year Jumps
+
+WITH ProductionStats AS (
+  SELECT 
+    fp.Year,
+    dc.Country,
+    ROUND(SUM(fp.Value), 0) AS total_production,
+    ROUND(
+      CASE 
+        WHEN LAG(SUM(fp.Value)) OVER (PARTITION BY dc.Country ORDER BY fp.Year) IS NULL THEN NULL
+        ELSE 
+          ((SUM(fp.Value) - LAG(SUM(fp.Value)) OVER (PARTITION BY dc.Country ORDER BY fp.Year)) 
+          / LAG(SUM(fp.Value)) OVER (PARTITION BY dc.Country ORDER BY fp.Year)) * 100
+      END, 2
+    ) AS percent_change
+  FROM fact_production AS fp
+  JOIN dim_item AS di ON fp.Item_ID = di.Item_ID
+  JOIN dim_country AS dc ON fp.Country_ID = dc.Country_ID
+  JOIN dim_element AS de ON fp.Element_ID = de.Element_ID
+  WHERE di.Item = 'Wheat'
+    AND de.Element = 'Production'
+    AND dc.Country_ID IN (36, 89, 157, 201, 70, 8, 32, 142, 193, 197)
+    AND fp.Value IS NOT NULL
+  GROUP BY fp.Year, dc.Country
+)
+
+SELECT *
+FROM ProductionStats
+WHERE percent_change > 50
+ORDER BY Country, Year ASC;
