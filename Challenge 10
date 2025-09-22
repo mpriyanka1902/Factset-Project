@@ -1,0 +1,28 @@
+--10. Smoothing the Signal: 3-Year Rolling Averages
+
+WITH world_prod AS (
+  SELECT 
+    fp.year,
+    SUM(fp.value) AS world_total
+  FROM fact_production AS fp
+  JOIN dim_item AS di ON fp.item_id = di.item_id
+  JOIN dim_element AS de ON fp.element_id = de.element_id
+  JOIN dim_country AS dc ON fp.country_id = dc.country_id
+  WHERE di.item = 'Wheat'
+    AND de.element = 'Production'
+    AND dc.Country_ID IN (36, 89, 157, 201, 70, 8, 32, 142, 193, 197)
+    AND fp.value IS NOT NULL
+  GROUP BY fp.year
+)
+
+SELECT 
+  year,
+  world_total,
+  ROUND(
+    AVG(world_total) OVER (
+      ORDER BY year 
+      ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ), 2
+  ) AS rolling_avg_3yr
+FROM world_prod
+ORDER BY year;
