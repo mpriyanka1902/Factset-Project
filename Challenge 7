@@ -1,0 +1,11 @@
+--7. What Do We Actually Track About This Crop?
+
+SELECT 
+  fp.Year,de.Element,de.Unit,fp.Value
+  FROM fact_production AS fp
+  JOIN dim_item AS di ON fp.Item_ID = di.Item_ID
+  JOIN dim_element AS de ON fp.Element_ID = de.Element_ID
+  JOIN dim_country AS dc ON fp.Country_ID = dc.Country_ID
+  WHERE di.Item = 'Wheat'
+        AND Country = 'France'
+        AND Year = 2023 ;
