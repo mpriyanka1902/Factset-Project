@@ -1,0 +1,16 @@
+--2. Yield Champions: Efficiency Over Volume
+
+SELECT 
+  dc.Country, 
+  ROUND(AVG(fp.Value), 0) AS avg_yield
+FROM fact_production AS fp
+JOIN dim_item AS di ON fp.Item_ID = di.Item_ID
+JOIN dim_country AS dc ON fp.Country_ID = dc.Country_ID
+JOIN dim_element AS de ON fp.Element_ID = de.Element_ID
+WHERE di.Item = 'Wheat'
+  AND de.Element = 'Yield'
+  AND fp.Year = 2023
+  AND dc.Country_ID IN (36, 89, 157, 201, 70, 8, 32, 142, 193, 197)
+GROUP BY dc.Country
+HAVING avg_yield IS NOT NULL
+ORDER BY avg_yield DESC;
